@@ -2,9 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe";
 import { prisma } from "@/lib/prisma";
 import { grantDiscordRole, sendDiscordDM, getBotSettings } from "@/lib/discord-bot";
-
-// Note: bodyParser: false is NOT needed in Next.js App Router
-// request.text() already gives raw body
+import type Stripe from "stripe";
 
 export async function POST(request: NextRequest) {
   const body = await request.text();
@@ -14,7 +12,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "No signature" }, { status: 400 });
   }
 
-  let event;
+  let event: Stripe.Event;
   try {
     event = stripe.webhooks.constructEvent(
       body,
@@ -30,18 +28,18 @@ export async function POST(request: NextRequest) {
   try {
     switch (event.type) {
       case "checkout.session.completed": {
-        const session = event.data.object;
-        await handlePaymentSuccess(session as Record<string, unknown>);
+        const session = event.data.object as unknown as Record<string, unknown>;
+        await handlePaymentSuccess(session);
         break;
       }
       case "checkout.session.expired": {
-        const session = event.data.object;
-        await handlePaymentExpired(session as Record<string, unknown>);
+        const session = event.data.object as unknown as Record<string, unknown>;
+        await handlePaymentExpired(session);
         break;
       }
       case "payment_intent.payment_failed": {
-        const paymentIntent = event.data.object;
-        await handlePaymentFailed(paymentIntent as Record<string, unknown>);
+        const paymentIntent = event.data.object as unknown as Record<string, unknown>;
+        await handlePaymentFailed(paymentIntent);
         break;
       }
     }

@@ -1,5 +1,3 @@
-Removed: discord.js
-Removed: socket.io
 {
   "name": "legendary-community-web",
   "version": "1.0.0",

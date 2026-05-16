@@ -14,7 +14,12 @@ export async function PATCH(
     const body = await request.json();
     const { isBanned, isAdmin, banReason } = body;
 
-    const updateData: Record<string, unknown> = {};
+    const updateData: {
+      isBanned?: boolean;
+      isAdmin?: boolean;
+      banReason?: string | null;
+    } = {};
+
     if (typeof isBanned === "boolean") updateData.isBanned = isBanned;
     if (typeof isAdmin === "boolean") updateData.isAdmin = isAdmin;
     if (banReason !== undefined) updateData.banReason = banReason;
@@ -37,7 +42,6 @@ export async function PATCH(
         targetId: id,
         action,
         description: `${action} for user ${updatedUser.username}`,
-        metadata: updateData,
       },
     });
 
