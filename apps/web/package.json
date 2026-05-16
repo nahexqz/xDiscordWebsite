@@ -1,3 +1,5 @@
+Removed: discord.js
+Removed: socket.io
 {
   "name": "legendary-community-web",
   "version": "1.0.0",
@@ -39,7 +41,6 @@
     "cloudinary": "^2.6.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
-    "discord.js": "^14.18.0",
     "firebase": "^11.7.1",
     "framer-motion": "^12.9.4",
     "jose": "^5.10.0",
@@ -51,7 +52,6 @@
     "react-dom": "^19.1.0",
     "react-hook-form": "^7.56.3",
     "recharts": "^2.15.3",
-    "socket.io": "^4.8.1",
     "socket.io-client": "^4.8.1",
     "stripe": "^17.7.0",
     "tailwind-merge": "^3.3.0",
