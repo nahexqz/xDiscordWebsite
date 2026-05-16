@@ -1,0 +1,342 @@
+// This file is the Prisma schema for the web application.
+// It is identical to packages/prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id @default(cuid())
+  discordId     String   @unique
+  username      String
+  discriminator String   @default("0")
+  email         String?
+  avatar        String?
+  banner        String?
+  phone         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  isAdmin       Boolean  @default(false)
+  isBanned      Boolean  @default(false)
+  banReason     String?
+  lastSeen      DateTime?
+
+  wallet        Wallet?
+  orders        Order[]
+  verifications VerificationSubmission[]
+  tickets       Ticket[]
+  ticketReplies TicketReply[]
+  adminLogs     AdminLog[]  @relation("AdminPerformer")
+  targetLogs    AdminLog[]  @relation("AdminTarget")
+  sessions      Session[]
+
+  @@map("users")
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  ipAddress String?
+  userAgent String?
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model Wallet {
+  id           String              @id @default(cuid())
+  userId       String              @unique
+  balance      Int                 @default(0)
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+
+  user         User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions WalletTransaction[]
+
+  @@map("wallets")
+}
+
+model WalletTransaction {
+  id          String          @id @default(cuid())
+  walletId    String
+  amount      Int
+  type        TransactionType
+  description String
+  orderId     String?
+  createdAt   DateTime        @default(now())
+
+  wallet      Wallet          @relation(fields: [walletId], references: [id], onDelete: Cascade)
+
+  @@map("wallet_transactions")
+}
+
+enum TransactionType {
+  CREDIT
+  DEBIT
+  REFUND
+  PURCHASE
+}
+
+model ProductCategory {
+  id          String    @id @default(cuid())
+  name        String
+  slug        String    @unique
+  description String?
+  emoji       String?
+  sortOrder   Int       @default(0)
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  products    Product[]
+
+  @@map("product_categories")
+}
+
+model Product {
+  id              String           @id @default(cuid())
+  categoryId      String?
+  name            String
+  slug            String           @unique
+  description     String
+  shortDesc       String?
+  price           Int
+  originalPrice   Int?
+  image           String?
+  roleId          String
+  roleName        String
+  duration        Int?
+  stock           Int?
+  soldCount       Int              @default(0)
+  isActive        Boolean          @default(true)
+  isFeatured      Boolean          @default(false)
+  sortOrder       Int              @default(0)
+  stripeProductId String?
+  stripePriceId   String?
+  benefits        String[]         @default([])
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  category        ProductCategory? @relation(fields: [categoryId], references: [id])
+  orders          Order[]
+
+  @@map("products")
+}
+
+model Order {
+  id                  String      @id @default(cuid())
+  userId              String
+  productId           String
+  amount              Int
+  currency            String      @default("thb")
+  status              OrderStatus @default(PENDING)
+  stripeSessionId     String?     @unique
+  stripePaymentIntent String?
+  couponId            String?
+  discountAmount      Int         @default(0)
+  roleGranted         Boolean     @default(false)
+  roleGrantedAt       DateTime?
+  dmSent              Boolean     @default(false)
+  failureReason       String?
+  metadata            Json?
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
+
+  user                User        @relation(fields: [userId], references: [id])
+  product             Product     @relation(fields: [productId], references: [id])
+  coupon              Coupon?     @relation(fields: [couponId], references: [id])
+
+  @@map("orders")
+}
+
+enum OrderStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+  CANCELLED
+}
+
+model Coupon {
+  id             String       @id @default(cuid())
+  code           String       @unique
+  description    String?
+  discountType   DiscountType
+  discountValue  Int
+  minOrderAmount Int          @default(0)
+  maxUses        Int?
+  usedCount      Int          @default(0)
+  isActive       Boolean      @default(true)
+  expiresAt      DateTime?
+  productIds     String[]     @default([])
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  orders         Order[]
+
+  @@map("coupons")
+}
+
+enum DiscountType {
+  PERCENTAGE
+  FIXED
+}
+
+model VerificationSubmission {
+  id                String             @id @default(cuid())
+  userId            String
+  level             Int
+  status            VerificationStatus @default(PENDING)
+  firstName         String
+  lastName          String
+  birthdate         DateTime
+  discordUid        String
+  email             String
+  phone             String
+  phoneVerified     Boolean            @default(false)
+  facebookUrl       String?
+  instagramUrl      String?
+  otherSocialUrl    String?
+  profileScreenshot String?
+  selfieImage       String?
+  idCardImage       String?
+  reviewedBy        String?
+  reviewedAt        DateTime?
+  rejectReason      String?
+  discordMessageId  String?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+
+  user              User               @relation(fields: [userId], references: [id])
+
+  @@map("verification_submissions")
+}
+
+enum VerificationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+model Ticket {
+  id           String       @id @default(cuid())
+  userId       String
+  ticketNumber Int          @default(autoincrement())
+  category     String
+  subject      String
+  message      String
+  screenshot   String?
+  status       TicketStatus @default(PENDING)
+  priority     Priority     @default(MEDIUM)
+  assignedTo   String?
+  resolvedAt   DateTime?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  user         User         @relation(fields: [userId], references: [id])
+  replies      TicketReply[]
+
+  @@map("tickets")
+}
+
+enum TicketStatus {
+  PENDING
+  IN_PROGRESS
+  RESOLVED
+  FAILED
+  CLOSED
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+model TicketReply {
+  id        String   @id @default(cuid())
+  ticketId  String
+  userId    String
+  message   String
+  isAdmin   Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  ticket    Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@map("ticket_replies")
+}
+
+model AdminLog {
+  id          String   @id @default(cuid())
+  performerId String
+  targetId    String?
+  action      String
+  description String
+  metadata    Json?
+  ipAddress   String?
+  createdAt   DateTime @default(now())
+
+  performer   User     @relation("AdminPerformer", fields: [performerId], references: [id])
+  target      User?    @relation("AdminTarget", fields: [targetId], references: [id])
+
+  @@map("admin_logs")
+}
+
+model Announcement {
+  id        String    @id @default(cuid())
+  title     String
+  message   String
+  type      String    @default("info")
+  isActive  Boolean   @default(true)
+  expiresAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@map("announcements")
+}
+
+model BotSettings {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  value       String
+  description String?
+  updatedAt   DateTime @updatedAt
+
+  @@map("bot_settings")
+}
+
+model DiscordRoleMapping {
+  id        String   @id @default(cuid())
+  productId String?  @unique
+  roleId    String   @unique
+  roleName  String
+  type      String
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("discord_role_mappings")
+}
+
+model SiteSettings {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  value       String
+  type        String   @default("string")
+  description String?
+  updatedAt   DateTime @updatedAt
+
+  @@map("site_settings")
+}

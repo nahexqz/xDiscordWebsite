@@ -1,0 +1,102 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: lc_postgres
+    restart: always
+    environment:
+      POSTGRES_DB: legendary_community
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./apps/web/prisma/migration.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - lc_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d legendary_community"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  web:
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile
+      args:
+        - NODE_ENV=production
+    container_name: lc_web
+    restart: always
+    expose:
+      - "3000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/legendary_community
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - lc_network
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/api/auth/me || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  bot:
+    build:
+      context: ./apps/bot
+      dockerfile: Dockerfile
+    container_name: lc_bot
+    restart: always
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/legendary_community
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - lc_network
+
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: lc_nginx
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - certbot_www:/var/www/certbot:ro
+      - certbot_conf:/etc/letsencrypt:ro
+    depends_on:
+      web:
+        condition: service_healthy
+    networks:
+      - lc_network
+
+  certbot:
+    image: certbot/certbot:latest
+    volumes:
+      - certbot_www:/var/www/certbot:rw
+      - certbot_conf:/etc/letsencrypt:rw
+    profiles:
+      - ssl
+
+volumes:
+  postgres_data:
+    driver: local
+  certbot_www:
+  certbot_conf:
+
+networks:
+  lc_network:
+    driver: bridge

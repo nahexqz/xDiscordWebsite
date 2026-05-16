@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+Allow: /shop
+Allow: /terms
+Allow: /privacy
+
+Disallow: /dashboard/
+Disallow: /profile
+Disallow: /tickets
+Disallow: /verification
+Disallow: /api/
+
+Sitemap: https://yourdomain.com/sitemap.xml

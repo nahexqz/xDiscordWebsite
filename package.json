@@ -1,0 +1,30 @@
+{
+  "name": "legendary-community",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Full-stack Discord Community Platform",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:web\" \"npm run dev:bot\"",
+    "dev:web": "cd apps/web && npm run dev",
+    "dev:bot": "cd apps/bot && npm run dev",
+    "build": "npm run build:web && npm run build:bot",
+    "build:web": "cd apps/web && npm run build",
+    "build:bot": "cd apps/bot && npm run build",
+    "install:all": "cd apps/web && npm install && cd ../bot && npm install",
+    "db:setup": "cd apps/web && npm run db:generate && npm run db:migrate && npm run db:seed",
+    "db:migrate": "cd apps/web && npx prisma migrate dev",
+    "db:seed": "cd apps/web && npx tsx prisma/seed.ts",
+    "db:studio": "cd apps/web && npx prisma studio",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:build": "docker-compose up -d --build",
+    "docker:logs": "docker-compose logs -f"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  }
+}

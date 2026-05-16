@@ -1,0 +1,97 @@
+// apps/bot/prisma/schema.prisma
+// This schema mirrors apps/web/prisma/schema.prisma exactly
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id @default(cuid())
+  discordId     String   @unique
+  username      String
+  discriminator String   @default("0")
+  email         String?
+  avatar        String?
+  isAdmin       Boolean  @default(false)
+  isBanned      Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  lastSeen      DateTime?
+
+  verifications VerificationSubmission[]
+  tickets       Ticket[]
+
+  @@map("users")
+}
+
+model BotSettings {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  value       String
+  description String?
+  updatedAt   DateTime @updatedAt
+
+  @@map("bot_settings")
+}
+
+model VerificationSubmission {
+  id                String   @id @default(cuid())
+  userId            String
+  level             Int
+  status            String   @default("PENDING")
+  firstName         String
+  lastName          String
+  birthdate         DateTime
+  discordUid        String
+  email             String
+  phone             String
+  phoneVerified     Boolean  @default(false)
+  facebookUrl       String?
+  instagramUrl      String?
+  profileScreenshot String?
+  selfieImage       String?
+  idCardImage       String?
+  reviewedBy        String?
+  reviewedAt        DateTime?
+  rejectReason      String?
+  discordMessageId  String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  user              User     @relation(fields: [userId], references: [id])
+
+  @@map("verification_submissions")
+}
+
+model Order {
+  id          String   @id @default(cuid())
+  userId      String
+  productId   String
+  amount      Int
+  status      String   @default("PENDING")
+  roleGranted Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("orders")
+}
+
+model Ticket {
+  id           String   @id @default(cuid())
+  userId       String
+  ticketNumber Int
+  category     String
+  subject      String
+  status       String   @default("PENDING")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user         User     @relation(fields: [userId], references: [id])
+
+  @@map("tickets")
+}
