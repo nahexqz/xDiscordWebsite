@@ -1,0 +1,8 @@
+apps/bot
+packages
+nginx
+docker-compose.yml
+docker-compose.prod.yml
+Makefile
+railway.toml
+setup.sh
