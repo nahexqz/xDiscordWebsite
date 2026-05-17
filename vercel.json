@@ -1,31 +1,5 @@
 {
   "version": 2,
-  "buildCommand": "cd apps/web && npm install && npx prisma generate && npm run build",
-  "outputDirectory": "apps/web/.next",
-  "installCommand": "cd apps/web && npm install",
   "framework": "nextjs",
-  "regions": ["sin1"],
-  "headers": [
-    {
-      "source": "/api/(.*)",
-      "headers": [
-        { "key": "Access-Control-Allow-Credentials", "value": "true" },
-        { "key": "Access-Control-Allow-Origin",      "value": "*"    },
-        { "key": "Access-Control-Allow-Methods",     "value": "GET,DELETE,PATCH,POST,PUT" },
-        { "key": "Access-Control-Allow-Headers",     "value": "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version" }
-      ]
-    },
-    {
-      "source": "/(.*)",
-      "headers": [
-        { "key": "X-Content-Type-Options",   "value": "nosniff"     },
-        { "key": "X-Frame-Options",           "value": "SAMEORIGIN"  },
-        { "key": "X-XSS-Protection",          "value": "1; mode=block" },
-        { "key": "Referrer-Policy",           "value": "strict-origin-when-cross-origin" }
-      ]
-    }
-  ],
-  "rewrites": [
-    { "source": "/sitemap.xml", "destination": "/sitemap" }
-  ]
+  "regions": ["sin1"]
 }

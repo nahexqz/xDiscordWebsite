@@ -1,8 +1,8 @@
-export const dynamic = "force-dynamic";
-
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { ProductDetailClient } from "./product-detail-client";
+
+export const dynamic = "force-dynamic";
 
 export default async function ProductPage({
   params,
