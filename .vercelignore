@@ -6,3 +6,8 @@ docker-compose.prod.yml
 Makefile
 railway.toml
 setup.sh
+*.zip
+CHANGELOG.md
+DEPLOYMENT.md
+README.md
+SETUP.md

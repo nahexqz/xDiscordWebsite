@@ -1,5 +1,6 @@
 {
   "version": 2,
+  "buildCommand": "npx prisma generate && next build",
   "regions": ["sin1"],
   "headers": [
     {

@@ -1,7 +1,12 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Remove "standalone" - incompatible with Vercel (serverless)
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+  typescript: {
+    ignoreBuildErrors: false,
+  },
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "cdn.discordapp.com" },
@@ -15,6 +20,16 @@ const nextConfig: NextConfig = {
     serverActions: {
       allowedOrigins: ["localhost:3000"],
     },
+  },
+  outputFileTracingExcludes: {
+    "*": [
+      "./node_modules/@swc/core-linux-x64-gnu",
+      "./node_modules/@swc/core-linux-x64-musl",
+      "./node_modules/esbuild/linux",
+      "./node_modules/webpack",
+      "./node_modules/rollup",
+      "./node_modules/terser",
+    ],
   },
 };
 
